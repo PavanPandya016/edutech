@@ -1,0 +1,142 @@
+erDiagram
+    %% User Management
+    CustomUser {
+        int id PK
+        string username
+        string email
+        string password
+        string first_name
+        string last_name
+        string phone
+        text address
+        char gender
+        date date_of_birth
+        image profile_picture
+        boolean is_staff
+        boolean is_active
+        datetime date_joined
+    }
+
+    %% Course Management
+    Course {
+        int id PK
+        string title
+        string slug UK
+        text description
+        image thumbnail
+        string course_type
+        decimal price
+        string access_type
+        boolean is_featured
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    CourseModule {
+        int id PK
+        int course_id FK
+        string title
+        text description
+        int order
+    }
+
+    CourseMaterial {
+        int id PK
+        int module_id FK
+        string title
+        string material_type
+        file file
+        url external_link
+        int order
+    }
+
+    CourseEnrollment {
+        int id PK
+        int user_id FK
+        int course_id FK
+        datetime enrolled_at
+        boolean completed
+    }
+
+    %% Event Management
+    Event {
+        int id PK
+        string title
+        string slug UK
+        text description
+        string event_type
+        image thumbnail
+        int related_course_id FK
+        datetime start_datetime
+        datetime end_datetime
+        url meeting_link
+        boolean is_featured
+        boolean is_active
+        int max_participants
+        datetime created_at
+        datetime updated_at
+    }
+
+    EventRegistration {
+        int id PK
+        int event_id FK
+        int user_id FK
+        datetime registered_at
+        boolean attended
+    }
+
+    %% Blog Management
+    Category {
+        int id PK
+        string name UK
+        string slug UK
+    }
+
+    Tag {
+        int id PK
+        string name UK
+        string slug UK
+    }
+
+    BlogPost {
+        int id PK
+        string title
+        string slug UK
+        text content
+        text excerpt
+        image featured_image
+        int author_id FK
+        int category_id FK
+        string status
+        boolean is_featured
+        datetime created_at
+        datetime updated_at
+        datetime published_at
+    }
+
+    BlogPostTags {
+        int id PK
+        int blogpost_id FK
+        int tag_id FK
+    }
+
+    %% Relationships
+    
+    %% Course Relationships
+    Course ||--o{ CourseModule : "has many"
+    CourseModule ||--o{ CourseMaterial : "contains"
+    Course ||--o{ CourseEnrollment : "enrolled by"
+    CustomUser ||--o{ CourseEnrollment : "enrolls in"
+    
+    %% Event Relationships
+    Course ||--o{ Event : "may have"
+    Event ||--o{ EventRegistration : "registered by"
+    CustomUser ||--o{ EventRegistration : "registers for"
+    
+    %% Blog Relationships
+    CustomUser ||--o{ BlogPost : "authors"
+    Category ||--o{ BlogPost : "categorizes"
+    BlogPost }o--o{ Tag : "tagged with"
+    BlogPost ||--o{ BlogPostTags : "has"
+    Tag ||--o{ BlogPostTags : "used in"
