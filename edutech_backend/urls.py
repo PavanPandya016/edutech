@@ -22,6 +22,24 @@ from rest_framework.routers import DefaultRouter
 from courses.views import CourseViewSet
 from events.views import EventViewSet
 from blog.views import BlogPostViewSet
+from django.http import JsonResponse
+
+def api_home(request):
+    return JsonResponse({
+        'message': 'EduTech API',
+        'endpoints': {
+            'admin': '/admin/',
+            'auth': {
+                'register': '/api/auth/register/', 
+                'login': '/api/auth/login/',
+                'logout': '/api/auth/logout/',
+                 'profile': '/api/auth/profile/',
+            },
+            'courses': '/api/courses/',
+            'events': '/api/events/',
+            'blog': '/api/blog/',
+        }
+    })
 
 router = DefaultRouter()
 router.register(r'courses', CourseViewSet)        
@@ -29,7 +47,9 @@ router.register(r'events', EventViewSet, basename='event')
 router.register(r'blog', BlogPostViewSet)
 
 urlpatterns = [
+    path('', api_home),
     path('admin/', admin.site.urls),
+    path('api/auth/', include('accounts.urls')),  # Auth endpoints
     path('api/', include(router.urls)),
 ]
 
