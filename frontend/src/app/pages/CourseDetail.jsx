@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import svgPaths from "../../imports/svg-78otquld5h";
 
+import svgPaths from "../../imports/svg-78otquld5h";
 import { imgStarColor } from "../../imports/svg-nvm9s";
 import Header from "../components/ui/Header";
 import Footer from "../components/ui/Footer";
+import authService from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 // extracted styles object moved to separate file for readability
 import styles from './CourseDetail.styles';
@@ -27,8 +30,10 @@ const starHalfFillStyle = {
 };
 
 const MainBody = () => {
+  const navigate = useNavigate();
   // State for toggling course content sections
   const [expandedSection, setExpandedSection] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   const toggleSection = (index) => {
     setExpandedSection(expandedSection === index ? null : index);
@@ -51,6 +56,16 @@ const MainBody = () => {
         </svg>
       );
     });
+  };
+
+  const handleBuyNow = () => {
+    const user = authService.getCurrentUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setToastMessage('Successfully enrolled in course!');
+    setTimeout(() => setToastMessage(''), 3000);
   };
 
   return (
@@ -106,6 +121,20 @@ const MainBody = () => {
           </div>
         </div>
       </motion.section>
+
+      {/* ── Toast Notification ── */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl font-['Public_Sans:Medium',sans-serif]"
+          >
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Grid Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -273,7 +302,7 @@ const MainBody = () => {
                   <div className="text-sm text-[#6d737a]">Full Course + Exam</div>
                 </div>
                 <motion.button 
-                  onClick={() => alert('Added to cart!')}
+                  onClick={handleBuyNow}
                   className="w-full bg-gradient-to-r from-[#14627a] to-[#0f4a5b] text-white font-semibold py-3 md:py-4 rounded-lg hover:from-[#0f4a5b] hover:to-[#083a47] transition-all"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import storageService from '../services/storageService';
+import authService from '../services/authService';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -121,6 +122,14 @@ export default function Login() {
                   Login to access your courses and continue learning with eduTech
                 </p>
               </div>
+
+              {loginError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="font-['Public_Sans:Medium',sans-serif] text-red-700">
+                    {loginError}
+                  </p>
+                </div>
+              )}
 
               {/* Success Message */}
               {submitSuccess && (

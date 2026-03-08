@@ -4,7 +4,9 @@ import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import svgPaths from '../../imports/svg-go1x4xx39u';
 import eventService from '../services/eventService';
+import authService from '../services/authService';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // --- Animation Variants ---
 const fadeInUp = {
@@ -25,23 +27,55 @@ const staggerContainer = {
 };
 
 // --- Helper: Auto-classify event as 'past' or 'upcoming' based on date ---
+// Vibrant palette for event cards (cycles through)
+const EVENT_COLORS = [
+  'bg-[#14627a]',
+  'bg-[#0183AB]',
+  'bg-[#2e7e96]',
+  'bg-[#1a5276]',
+  'bg-[#117a65]',
+  'bg-[#6c3483]',
+  'bg-[#922b21]',
+  'bg-[#7d6608]',
+];
+
 function classifyEvents(events) {
   const now = new Date();
   // Normalize today to midnight so same-day events are still "upcoming"
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  return events.map((event) => {
-    const eventDate = new Date(event.date);
+  return events.map((event, index) => {
+    // Use startDateTime (the field the backend/model actually returns)
+    const eventDate = new Date(event.startDateTime);
     const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+
+    // Format a human-readable time string, e.g. "10:00 AM"
+    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Location: show meeting link host if present, otherwise fall back to event type
+    let locationStr = event.eventType || 'Online';
+    if (event.meetingLink) {
+      try {
+        locationStr = new URL(event.meetingLink).hostname.replace('www.', '');
+      } catch (_) {
+        locationStr = 'Online';
+      }
+    }
+
     return {
       ...event,
       type: eventDay < today ? 'past' : 'upcoming',
-      // Derive display month/day from the date string so there's a single source of truth
+      // Derive display month/day from startDateTime
       month: eventDate.toLocaleString('default', { month: 'short' }),
       day: String(eventDate.getDate()),
+      time: timeStr,
+      location: locationStr,
+      // Assign a rotating vibrant background color
+      bgColor: EVENT_COLORS[index % EVENT_COLORS.length],
     };
   });
 }
+
 
 // --- Components ---
 
@@ -109,10 +143,12 @@ function EventCard({ month, day, title, time, location, bgColor, type }) {
 }
 
 export default function Workshop() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [registrationMessage, setRegistrationMessage] = useState('');
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -131,6 +167,19 @@ export default function Workshop() {
     };
     fetchEvents();
   }, []);
+
+  const handleRegisterClick = async () => {
+    const user = authService.getCurrentUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    // In a full implementation, you'd select a specific event to register for.
+    // Here we'll show a general registration success message or redirect to an apply flow.
+    setRegistrationMessage('Successfully registered interest for upcoming events!');
+    setTimeout(() => setRegistrationMessage(''), 3000);
+  };
 
 
   const displayed = filter === 'all' ? events : events.filter(e => e.type === filter);
@@ -203,6 +252,20 @@ export default function Workshop() {
         </div>
       </div>
 
+      {/* ── Toast Notification ── */}
+      <AnimatePresence>
+        {registrationMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl font-['Public_Sans:Medium',sans-serif]"
+          >
+            {registrationMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Events Grid ── */}
       <div className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto min-h-[400px]">
@@ -221,26 +284,28 @@ export default function Workshop() {
               </button>
             </div>
           ) : (
-            <motion.div 
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-8"
-            >
-              <AnimatePresence mode="popLayout">
-                {displayed.map((event) => (
-                  <EventCard key={event.id} {...event} />
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          )}
+            <>
+              <motion.div 
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-8"
+              >
+                <AnimatePresence mode="popLayout">
+                  {displayed.map((event) => (
+                    <EventCard key={event._id || event.id} {...event} />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
 
-          {displayed.length === 0 && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-[#6d737a] text-lg mt-20"
-            >
-              No events found.
-            </motion.p>
+              {displayed.length === 0 && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center text-[#6d737a] text-lg mt-20"
+                >
+                  No events found.
+                </motion.p>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -273,6 +338,7 @@ export default function Workshop() {
             Register now to secure your spot and be part of our vibrant learning community
           </motion.p>
           <motion.button 
+            onClick={handleRegisterClick}
             whileHover={{ scale: 1.05, backgroundColor: "#ffd194" }}
             whileTap={{ scale: 0.95 }}
             className="bg-[#ffc27a] text-[#14627a] px-10 sm:px-12 py-4 sm:py-5 rounded-xl font-bold text-[16px] sm:text-[18px] transition-all shadow-xl"

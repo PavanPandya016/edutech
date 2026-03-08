@@ -12,19 +12,19 @@ export default function SuggestionForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     suggestionService.addSuggestion({
       type: activeTab,
       ...formData
     });
-    
+
     setIsLoading(false);
     setIsSubmitted(true);
     setFormData({ title: '', description: '', email: '' });
-    
+
     // Reset success message after 5 seconds
     setTimeout(() => setIsSubmitted(false), 5000);
   };
@@ -40,7 +40,7 @@ export default function SuggestionForm() {
       <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-48 h-48 bg-[#FFC27A]/10 rounded-full blur-3xl" />
 
       <div className="relative z-10 text-center mb-10">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#14627a]/10 text-[#14627a] text-sm font-bold mb-4"
@@ -57,22 +57,20 @@ export default function SuggestionForm() {
       <div className="flex justify-center mb-8 p-1 bg-gray-100 rounded-xl w-fit mx-auto">
         <button
           onClick={() => setActiveTab('course')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === 'course' 
-              ? 'bg-white text-[#14627a] shadow-md' 
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'course'
+              ? 'bg-white text-[#14627a] shadow-md'
               : 'text-gray-500 hover:text-gray-700'
-          }`}
+            }`}
         >
           <GraduationCap size={18} />
           Suggest Course
         </button>
         <button
           onClick={() => setActiveTab('blog')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === 'blog' 
-              ? 'bg-white text-[#14627a] shadow-md' 
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'blog'
+              ? 'bg-white text-[#14627a] shadow-md'
               : 'text-gray-500 hover:text-gray-700'
-          }`}
+            }`}
         >
           <BookOpen size={18} />
           Suggest Blog
@@ -93,7 +91,7 @@ export default function SuggestionForm() {
             </div>
             <h3 className="text-2xl font-bold text-[#06213d] mb-2">Thank You!</h3>
             <p className="text-[#6d737a]">Your suggestion for a {activeTab} has been received.</p>
-            <button 
+            <button
               onClick={() => setIsSubmitted(false)}
               className="mt-6 text-[#14627a] font-semibold hover:underline"
             >

@@ -67,6 +67,20 @@ export const authService = {
   },
 
   /**
+   * Gets the currently logged-in user from localStorage.
+   * @returns {Object|null} user object or null if not logged in
+   */
+  getCurrentUser: () => {
+    try {
+      const user = localStorage.getItem('edutech_user');
+      return user ? JSON.parse(user) : null;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  },
+
+  /**
    * Updates the current user's profile.
    * @param {Object} profileData
    */

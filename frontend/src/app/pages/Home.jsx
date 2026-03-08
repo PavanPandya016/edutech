@@ -20,17 +20,6 @@ const POPULAR_COURSES = [
   { id: 4, title: "Data Science Essentials", category: "Data Science", price: 500, rating: 5, reviews: 89, image: picsum("course4", 400, 250) },
 ];
 
-const CATEGORIES = [
-  { name: "Design", icon: "bi-palette" },
-  { name: "Development", icon: "bi-code-slash" },
-  { name: "Marketing", icon: "bi-graph-up" },
-  { name: "Business", icon: "bi-briefcase" },
-  { name: "Lifestyle", icon: "bi-stars" },
-  { name: "Photography", icon: "bi-camera" },
-  { name: "Music", icon: "bi-music-note" },
-  { name: "Data Science", icon: "bi-bar-chart" },
-];
-
 const INSTRUCTORS = [
   { id: 1, name: "Sarah Jones", specialty: "UI/UX Design", image: picsum("instructor1", 200, 200) },
   { id: 2, name: "Michael Chen", specialty: "Social Media", image: picsum("instructor2", 200, 200) },
@@ -48,7 +37,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <PopularCoursesSection courses={POPULAR_COURSES} />
-        <CategoriesSection categories={CATEGORIES} />
+        <CategoriesSection />
         <InstructorsSection instructors={INSTRUCTORS} />
         <CtaSection />
       </main>

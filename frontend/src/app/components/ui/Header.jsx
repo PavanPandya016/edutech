@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import svgPaths from "../../../imports/svg-go1x4xx39u";
+import authService from "../../services/authService";
 
 /* =========================
    Lock Icon Component
@@ -49,16 +50,7 @@ export default function Header() {
      Logout Handler
   ========================= */
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("applicantName");
-    localStorage.removeItem("applicantEmail");
-    localStorage.removeItem("applicantPhone");
-    localStorage.removeItem("applicantEducation");
-    localStorage.removeItem("applicantCourse");
-    
+    authService.logout();
     setIsLoggedIn(false);
     setUserName("");
     setIsMenuOpen(false);
@@ -69,14 +61,10 @@ export default function Header() {
      Auth Check
   ========================= */
   useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const name =
-      localStorage.getItem("userName") ||
-      localStorage.getItem("userEmail")?.split("@")[0] ||
-      "User";
-
-    setIsLoggedIn(loggedIn);
-    setUserName(name);
+    const user = authService.getCurrentUser();
+    setIsLoggedIn(!!user);
+    const name = user?.name || (user?.email ? user.email.split('@')[0] : "User");
+    setUserName(typeof name === 'string' ? name : "User");
   }, [location.pathname]);
 
   /* Close mobile menu when route changes */

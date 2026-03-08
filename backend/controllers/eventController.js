@@ -3,7 +3,7 @@ const { Event, EventRegistration } = require('../models');
 
 exports.getEvents = asyncHandler(async (req, res) => {
   const { type, page = 1, limit = 20 } = req.query;
-  let query = { isActive: true, startDateTime: { $gte: new Date() } };
+  let query = { isActive: true };
   if (type) query.eventType = type;
   const skip = (page - 1) * limit;
   const events = await Event.find(query).sort({ startDateTime: 1 }).skip(skip).limit(parseInt(limit));

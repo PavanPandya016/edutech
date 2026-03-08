@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import blogService from '../services/blogService';
-import SuggestionForm from '../components/SuggestionForm';
 
 const categoryColors = {
   Development: 'bg-[#14627a]',
@@ -193,7 +192,7 @@ export default function Blog() {
                 />
                 <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -257,7 +256,7 @@ export default function Blog() {
           ) : error ? (
             <div className="text-center py-20">
               <p className="text-red-500 text-lg">{error}</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="mt-4 px-6 py-2 bg-[#14627a] text-white rounded-lg"
               >
@@ -318,7 +317,7 @@ export default function Blog() {
                         </div>
 
                         <Link
-                          to={`/blog/${post.id}`}
+                          to={`/blog/${post.slug || post.id}`}
                           className="text-[#14627a] hover:text-[#0d4d5e] font-bold text-xs sm:text-sm flex items-center group/read"
                         >
                           Read more <ArrowRight size={16} className="ml-1 group-hover/read:translate-x-1 transition-transform" />
@@ -350,7 +349,6 @@ export default function Blog() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <SuggestionForm />
           </motion.div>
         </motion.div>
       </section>

@@ -4,11 +4,14 @@ import { useForm } from 'react-hook-form';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import storageService from '../services/storageService';
+import authService from '../services/authService';
 
 export default function Signup() {
   const navigate = useNavigate();
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [signupError, setSignupError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
 
   const onSubmit = async (data) => {
     setSignupError('');
@@ -114,6 +117,14 @@ export default function Signup() {
                   Start your learning journey today. Sign up and get access to 5000+ courses
                 </p>
               </div>
+
+              {signupError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="font-['Public_Sans:Medium',sans-serif] text-red-700">
+                    {signupError}
+                  </p>
+                </div>
+              )}
 
               {/* Success Message */}
               {submitSuccess && (

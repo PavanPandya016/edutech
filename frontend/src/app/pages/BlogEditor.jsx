@@ -138,6 +138,8 @@ export default function BlogEditor() {
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [toc, setToc] = useState([]);
+  const [categories, setCategories] = useState(['Development']);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Initialize TipTap
   const editor = useEditor({
@@ -170,24 +172,47 @@ export default function BlogEditor() {
     }
   });
 
+  // FIX: load categories asynchronously
   useEffect(() => {
-    if (isEditing && editor) {
-      const existing = blogService.getBlogById(id);
-      if (existing) {
-        setFormData({
-          title: existing.title || '',
-          category: existing.category || 'Development',
-          tags: Array.isArray(existing.tags) ? existing.tags.join(', ') : '',
-          excerpt: existing.excerpt || '',
-          image: existing.image || '',
-          status: existing.status || 'Published'
-        });
-        editor.commands.setContent(existing.content || '');
-      } else {
-        navigate('/blog');
+    const fetchCategories = async () => {
+      try {
+        const cats = await blogService.getCategories();
+        if (cats && cats.length > 0) {
+          setCategories(cats.filter(c => c !== 'All'));
+        }
+      } catch (err) {
+        console.error('Failed to load categories:', err);
       }
-    }
-  }, [id, editor, navigate]);
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchBlog = async () => {
+      if (isEditing && editor) {
+        try {
+          const existing = await blogService.getBlogBySlug(id);
+          if (existing) {
+            setFormData({
+              title: existing.title || '',
+              category: existing.category || 'Development',
+              tags: Array.isArray(existing.tags) ? existing.tags.join(', ') : '',
+              excerpt: existing.excerpt || '',
+              image: existing.image || '',
+              status: existing.status || 'Published'
+            });
+            editor.commands.setContent(existing.content || '');
+          } else {
+            navigate('/blog');
+          }
+        } catch (err) {
+          console.error('Failed to load blog for editing:', err);
+          navigate('/blog');
+        }
+      }
+    };
+    fetchBlog();
+  }, [id, editor, navigate, isEditing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -205,15 +230,14 @@ export default function BlogEditor() {
     }
   };
 
-  const handleSave = () => {
+  // FIX: handleSave is now async and awaits service calls before navigating
+  const handleSave = async () => {
     if (!formData.title.trim()) {
-      alert("Please provide a title for your blog.");
+      alert('Please provide a title for your blog.');
       return;
     }
 
     const htmlContent = editor.getHTML();
-    
-    // Convert comma-separated tags to array
     const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
 
     const dataToSave = {
@@ -221,31 +245,39 @@ export default function BlogEditor() {
       category: formData.category,
       tags: tagsArray,
       excerpt: formData.excerpt,
-      image: formData.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80',
+      featuredImage: formData.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80',
       content: htmlContent,
       status: formData.status
     };
 
-    if (isEditing) {
-      blogService.updateBlog(parseInt(id), dataToSave);
-      navigate(`/blog/${id}`);
-    } else {
-      const saved = blogService.addBlog(dataToSave);
-      if (saved) {
-        navigate(`/blog/${saved.id}`);
+    try {
+      setIsSaving(true);
+      if (isEditing) {
+        const updated = await blogService.updateBlog(id, dataToSave);
+        navigate(`/blog/${updated.slug || id}`);
+      } else {
+        const saved = await blogService.addBlog(dataToSave);
+        if (saved) {
+          navigate(`/blog/${saved.slug || saved._id || saved.id}`);
+        } else {
+          navigate('/blog/dashboard');
+        }
       }
+    } catch (err) {
+      console.error('Failed to save blog:', err);
+      alert('Failed to save blog post. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
-
-  const categories = blogService.getCategories().filter(c => c !== 'All');
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <main className="flex-1 max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col md:flex-row gap-8 relative items-start">
-          
+
           {/* Main Editor Section */}
           <div className="flex-1 w-full bg-white rounded-xl shadow-sm border border-gray-200">
             {/* Header / Title Area */}
@@ -271,11 +303,11 @@ export default function BlogEditor() {
                   <span className={`w-2 h-2 rounded-full ${formData.status === 'Published' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
                   {formData.status}
                 </div>
-                <button 
+                <button
                   onClick={() => setShowSettings(!showSettings)}
                   className="ml-auto text-gray-400 hover:text-[#14627a] flex items-center gap-1 text-sm font-medium md:hidden"
                 >
-                  <Settings className="w-4 h-4"/> Settings
+                  <Settings className="w-4 h-4" /> Settings
                 </button>
               </div>
             </div>
@@ -284,7 +316,8 @@ export default function BlogEditor() {
             <div className="relative">
               <MenuBar editor={editor} />
               <div className="prose-container min-h-[500px]">
-                 <style dangerouslySetInnerHTML={{__html: `
+                <style dangerouslySetInnerHTML={{
+                  __html: `
                     .ProseMirror p.is-editor-empty:first-child::before {
                       content: attr(data-placeholder);
                       float: left;
@@ -310,7 +343,7 @@ export default function BlogEditor() {
 
           {/* Right Sidebar - Settings */}
           <div className={`${showSettings ? 'block' : 'hidden'} md:block w-full md:w-80 space-y-6 md:sticky md:top-24`}>
-            
+
             {/* Table of Contents Preview */}
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
               <h3 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -334,16 +367,22 @@ export default function BlogEditor() {
 
             {/* Actions */}
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3">
-              <button 
+              <button
                 onClick={handleSave}
-                className="w-full flex items-center justify-center gap-2 bg-[#14627a] hover:bg-[#0f4a5b] text-white py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                disabled={isSaving}
+                className="w-full flex items-center justify-center gap-2 bg-[#14627a] hover:bg-[#0f4a5b] disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
               >
-                <Save className="w-5 h-5" />
-                {isEditing ? 'Update Post' : 'Publish Post'}
+                {isSaving ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white" />
+                ) : (
+                  <Save className="w-5 h-5" />
+                )}
+                {isSaving ? 'Saving...' : isEditing ? 'Update Post' : 'Publish Post'}
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/blog/dashboard')}
-                className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 py-3 rounded-lg font-semibold transition-all"
+                disabled={isSaving}
+                className="w-full flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-60 py-3 rounded-lg font-semibold transition-all"
               >
                 <X className="w-5 h-5" />
                 Cancel
@@ -353,7 +392,7 @@ export default function BlogEditor() {
             {/* Post Settings */}
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-6">
               <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-2">Post Settings</h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select
@@ -394,7 +433,7 @@ export default function BlogEditor() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Featured Image</label>
-                <div 
+                <div
                   className="relative group border-2 border-dashed border-gray-300 rounded-lg overflow-hidden h-40 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                   onMouseEnter={() => setIsHoveringImage(true)}
                   onMouseLeave={() => setIsHoveringImage(false)}

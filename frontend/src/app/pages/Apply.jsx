@@ -44,16 +44,12 @@ export default function Apply() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Store application data in localStorage
+    // In a real app, this would submit the course application to the API
     localStorage.setItem('applicantName', formData.name);
     localStorage.setItem('applicantEmail', formData.email);
     localStorage.setItem('applicantPhone', formData.phoneNumber);
     localStorage.setItem('applicantEducation', formData.educationLevel);
     localStorage.setItem('applicantCourse', formData.course);
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', formData.email);
-    localStorage.setItem('userRole', 'student');
-    localStorage.setItem('userName', formData.name);
     
     setSubmitSuccess(true);
     setTimeout(() => navigate('/'), 1500);

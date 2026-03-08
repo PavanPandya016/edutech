@@ -6,6 +6,7 @@ const courseSchema = new mongoose.Schema({
   description: { type: String, required: true },
   excerpt: String,
   thumbnail: String,
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   courseType: { type: String, enum: ['free', 'paid'], default: 'free' },
   price: { type: Number, default: 0, min: 0 },
   accessType: { type: String, enum: ['open', 'enrollment'], default: 'enrollment' },
