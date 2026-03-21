@@ -20,7 +20,7 @@ The backend exposes Serverless Functions and must be deployed as its own Vercel 
    - **Root Directory:** Edit this and select the **`backend`** folder. By telling Vercel the root is `backend`, it knows to look at `backend/vercel.json` and `backend/index.js`.
 5. **Environment Variables:** Add the following securely:
    - `NODE_ENV`: `production`
-   - `MONGODB_URI`: `mongodb+srv://edutech_web:edutech@cluster0.yjwj5yv.mongodb.net/edutech?retryWrites=true&w=majority` (use your actual password/URL here).
+   - `MONGODB_URI`: `` (use your actual password/URL here).
    - `JWT_SECRET`: Your secure random string (e.g., `my-super-secret-jwt-key`).
    - `FRONTEND_URL`: Leave this blank for now, we will come back and fill this in after deploying the frontend!
 6. Click **Deploy**.
